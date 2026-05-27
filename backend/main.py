@@ -7,11 +7,17 @@ from database import (
     inventory_collection
 )
 
+from models import (
+    Patient,
+    Staff,
+    Inventory
+)
+
 app = FastAPI()
 
-# ======================================
+# ====================================
 # CORS
-# ======================================
+# ====================================
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,9 +27,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ======================================
+# ====================================
 # HOME
-# ======================================
+# ====================================
 
 @app.get("/")
 def home():
@@ -32,12 +38,9 @@ def home():
         "message": "Hospital Management Backend Running"
     }
 
-
-
-
-# ======================================
-# Dashboard
-# ======================================
+# ====================================
+# DASHBOARD
+# ====================================
 
 @app.get("/dashboard")
 def get_dashboard():
@@ -49,131 +52,178 @@ def get_dashboard():
     total_inventory = inventory_collection.count_documents({})
 
     recent_patients = list(
+
         patients_collection.find(
             {},
             {"_id": 0}
-        ).sort("id", -1).limit(5)
+        )
+
+        .sort("id", -1)
+
+        .limit(5)
+
     )
 
     return {
+
         "total_patients": total_patients,
+
         "total_staff": total_staff,
+
         "total_inventory": total_inventory,
+
         "recent_patients": recent_patients,
+
         "database": "Connected"
+
     }
 
-
-# ======================================
+# ====================================
 # PATIENTS
-# ======================================
-
+# ====================================
 
 @app.get("/patients")
 def get_patients():
 
     patients = list(
-        patients_collection.find({}, {"_id": 0})
+
+        patients_collection.find(
+            {},
+            {"_id": 0}
+        )
+
     )
 
     return patients
 
-
 @app.post("/patients")
-def add_patient(patient: dict):
+def add_patient(patient: Patient):
 
-    patient["id"] = (
+    patient_data = patient.model_dump()
+
+    patient_data["id"] = (
+
         patients_collection.count_documents({}) + 1
+
     )
 
-    patients_collection.insert_one(patient)
+    patients_collection.insert_one(patient_data)
 
     return {
-        "message": "Patient Added"
-    }
 
+        "message": "Patient Added"
+
+    }
 
 @app.delete("/patients/{patient_id}")
 def delete_patient(patient_id: int):
 
     patients_collection.delete_one(
+
         {"id": patient_id}
+
     )
 
     return {
+
         "message": "Patient Removed"
+
     }
 
-# ======================================
+# ====================================
 # STAFF
-# ======================================
+# ====================================
 
 @app.get("/staff")
 def get_staff():
 
     staff = list(
-        staff_collection.find({}, {"_id": 0})
+
+        staff_collection.find(
+            {},
+            {"_id": 0}
+        )
+
     )
 
     return staff
 
-
 @app.post("/staff")
-def add_staff(member: dict):
+def add_staff(member: Staff):
 
-    member["id"] = (
+    staff_data = member.model_dump()
+
+    staff_data["id"] = (
+
         staff_collection.count_documents({}) + 1
+
     )
 
-    staff_collection.insert_one(member)
+    staff_collection.insert_one(staff_data)
 
     return {
-        "message": "Staff Added"
-    }
 
+        "message": "Staff Added"
+
+    }
 
 @app.delete("/staff/{staff_id}")
 def delete_staff(staff_id: int):
 
     staff_collection.delete_one(
+
         {"id": staff_id}
+
     )
 
     return {
+
         "message": "Staff Removed"
+
     }
 
-# ======================================
+# ====================================
 # INVENTORY
-# ======================================
+# ====================================
 
 @app.get("/inventory")
 def get_inventory():
 
     inventory = list(
-        inventory_collection.find({}, {"_id": 0})
+
+        inventory_collection.find(
+            {},
+            {"_id": 0}
+        )
+
     )
 
     return inventory
 
-
 @app.post("/inventory")
-def add_inventory(item: dict):
+def add_inventory(item: Inventory):
 
-    inventory_collection.insert_one(item)
+    item_data = item.model_dump()
+
+    inventory_collection.insert_one(item_data)
 
     return {
-        "message": "Item Added"
-    }
 
+        "message": "Item Added"
+
+    }
 
 @app.delete("/inventory/{item_name}")
 def delete_inventory(item_name: str):
 
     inventory_collection.delete_one(
+
         {"name": item_name}
+
     )
 
     return {
+
         "message": "Item Removed"
+
     }

@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # 1. MongoDB Database Cluster
+  mongo:
+    image: mongo:latest
+    container_name: hms-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - hms-network
+
+  # 2. Authentication Microservice (Port 8001 internal)
+  auth-service:
+    build:
+      context: ./microservices/auth
+    container_name: hms-auth-service
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+    networks:
+      - hms-network
+
+  # 3. Patient Registry Microservice (Port 8002 internal)
+  patient-service:
+    build:
+      context: ./microservices/patient
+    container_name: hms-patient-service
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+    networks:
+      - hms-network
+
+  # 4. Medical Staff Microservice (Port 8003 internal)
+  staff-service:
+    build:
+      context: ./microservices/staff
+    container_name: hms-staff-service
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+    networks:
+      - hms-network
+
+  # 5. Inventory & Razorpay Microservice (Port 8004 internal)
+  inventory-service:
+    build:
+      context: ./microservices/inventory
+    container_name: hms-inventory-service
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+    networks:
+      - hms-network
+
+  # 6. Nginx API Reverse Proxy Gateway (Port 80 external)
+  nginx-gateway:
+    build:
+      context: ./gateway
+    container_name: hms-nginx-gateway
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - patient-service
+      - staff-service
+      - inventory-service
+    networks:
+      - hms-network
+
+volumes:
+  mongo-data:
+
+networks:
+  hms-network:
+    driver: bridge

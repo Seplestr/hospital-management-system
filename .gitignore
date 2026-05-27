@@ -8,3 +8,11 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Local environment configuration
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+

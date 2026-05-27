@@ -15,4 +15,7 @@ wheels/
 .env.development
 .env.test
 .env.production
+**/backend/.env
+**/frontend/.env
+**/microservices/*/.env
 
